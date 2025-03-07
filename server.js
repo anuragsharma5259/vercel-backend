@@ -7,7 +7,7 @@ const fs = require("fs");
 const pdfParse = require("pdf-parse");
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" })); // Allow frontend access
+app.use(cors({ origin: "https://resume-roast-three.vercel.app/" })); // Allow frontend access
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
