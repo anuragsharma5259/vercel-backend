@@ -6,7 +6,8 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 
 const app = express();
-app.use(cors({ origin: "https://resume-roast-three.vercel.app/" })); // Allow frontend access
+app.use(cors());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
