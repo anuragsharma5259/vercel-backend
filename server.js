@@ -15,6 +15,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 const userUploadTimestamps = new Map();
 const UPLOAD_COOLDOWN = 5000; // 5 seconds
 
+app.get("/", (req, res) => {
+    res.send("🔥 Resume Roast API is running! 🔥");
+});
+
+// ✅ Handle favicon requests to prevent errors
+app.get("/favicon.ico", (req, res) => res.status(204));
+
 app.post("/upload-resume", upload.single("resume"), async (req, res) => {
     try {
         const userIP = req.ip;
