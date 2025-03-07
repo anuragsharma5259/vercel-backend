@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const multer = require("multer");
-const fs = require("fs");
 const pdfParse = require("pdf-parse");
 
 const app = express();
@@ -11,9 +10,8 @@ app.use(cors({ origin: "https://resume-roast-three.vercel.app/" })); // Allow fr
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Rate limiting using a more efficient approach
 const userUploadTimestamps = new Map();
 const UPLOAD_COOLDOWN = 5000; // 5 seconds
 
@@ -32,44 +30,36 @@ app.post("/upload-resume", upload.single("resume"), async (req, res) => {
         }
 
         if (req.file.mimetype !== "application/pdf") {
-            fs.unlink(req.file.path, () => {}); // Async delete
             return res.status(400).json({ error: "Invalid file type! Please upload a PDF." });
         }
 
         const { language } = req.body;
-        const dataBuffer = fs.readFileSync(req.file.path);
-        const pdfData = await pdfParse(dataBuffer);
+       
+        const pdfData = await pdfParse(req.file.buffer);
         const extractedText = pdfData.text;
-
-        fs.unlink(req.file.path, () => {}); // Async delete
-
-        
 
         const selectedLanguage = language || "English";
 
         let roastPrompt = `Bro, absolutely DESTROY this resume in ${selectedLanguage}. No corporate nonsense—just pure, meme-level roasting like two best friends clowning each other.  
         - Be brutally funny, sarcastic, and engaging.  
-        - Roast everything line by line 
+        - Roast everything line by line.  
         - Use simple, everyday ${selectedLanguage}. No fancy words—just pure savage humor.  
         - Make fun of achievements like they’re participation trophies.  
         - Add emojis to make it hit harder.  
         - Keep it short, punchy, and straight to the point.  
-        - Give an ATS score and roast the resume. 
-        **Here's the resume:** \n\n${extractedText} 
-        
-        - Roast brutally but in the end give rating in a funny way of the resume in one line`;
+        - Give an ATS score and roast the resume.  
+        **Here's the resume:** \n\n${extractedText}  
+        - Roast brutally but in the end give rating in a funny way of the resume in one line.`;
 
         if (selectedLanguage.toLowerCase() === "hindi") {
-            roastPrompt = `Bhai, is resume ki aisi taisi kar do, ekdum full tandoori roast chahiye!🔥 
-            - Har ek line pe solid taunt maaro.
-            - Achi tarah se lagane wala sarcasm use karo.
-            - Achi achievement ko bhi aise udaao jaise kisi ne gully cricket jeeta ho. 🏏🤣
-            - Emojis aur memes ka proper use ho, taki roast aur mast lage. 💀😂
-            - Chhota, mazedaar aur full tandoor level ka roast chahiye.
-            - ATS score bhi do, lekin aise jaise school me ma'am ne aakhri bench wale ko bola ho - "Beta, next time better karo!" 😆
-            **Yeh raha resume:** \n\n${extractedText} 
-            -aur ye sb user ko mt show kr keywords bs inke according roast kr bhai
-            
+            roastPrompt = `Bhai, is resume ki aisi taisi kar do, ekdum full tandoori roast chahiye!🔥  
+            - Har ek line pe solid taunt maaro.  
+            - Achi tarah se lagane wala sarcasm use karo.  
+            - Achi achievement ko bhi aise udaao jaise kisi ne gully cricket jeeta ho. 🏏🤣  
+            - Emojis aur memes ka proper use ho, taki roast aur mast lage. 💀😂  
+            - Chhota, mazedaar aur full tandoor level ka roast chahiye.  
+            - ATS score bhi do, lekin aise jaise school me ma'am ne aakhri bench wale ko bola ho - "Beta, next time better karo!" 😆  
+            **Yeh raha resume:** \n\n${extractedText}  
             - Aur last me, ek savage tareeke se rating dedo jaise kisi dost ko dete hain - "Bhai, ye resume dekh ke HR bhi soch raha hoga ki kaise mana kare bina hasaaye!"`;
         }
 
@@ -81,9 +71,9 @@ app.post("/upload-resume", upload.single("resume"), async (req, res) => {
             },
             body: JSON.stringify({
                 model: "meta-llama/llama-3.3-70b-instruct:free",
-                messages: [ 
+                messages: [
                     {
-                        "role": "user", 
+                        "role": "user",
                         "content": roastPrompt
                     },
                 ],
